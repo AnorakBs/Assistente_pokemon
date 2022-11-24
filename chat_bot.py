@@ -5,6 +5,8 @@ import time
 import requests
 import os
 from IPython.display import clear_output
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 with open('pkmn_dict.json','r',encoding='utf-8') as f:
     pkmn_dict = json.load(f)
@@ -52,29 +54,32 @@ def norm_user_input(user_input):
     texto = user_input.lower()
     return user_input.lower()
 
-contador = 0
-while True:
-    os.system('cls')
-    contador = contador + 1
-    clear_output(wait=True)
-    print('Bot: Bem vindo ao assistente de batalha Pokemon!')
-    time.sleep(2)
+
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def root(txt: str):
     
-    print('Bot: Digite o nome do pokemon que você está lutando contra')
-
-    nome_pkmn = norm_user_input(input('User:'))
-
+    msgArray = []
+    nome_pkmn = norm_user_input(txt)
+    
     tipos = call_api(nome_pkmn)
 
     if tipos == 'erro':
+        
         url_pokedex = 'https://pokemondb.net/pokedex/all'
-        print('Bot: Nao conheço esse pokemon')
-        time.sleep(2)
-        print(f'Bot: Clique nesse link para ver a pokedex e procurar pelo nome correto do pokemon: {url_pokedex}')
-        time.sleep(15)
-        clear_output(wait=True)
-        break
-
+        msgArray.append('Não conheço esse pokemon')
+        msgArray.append(f'Clique nesse link para ver a pokedex e procurar pelo nome correto do pokemon: {url_pokedex}')
+        return msgArray
     if len(tipos) > 1:
         tipo_1 = tipos[0]
         tipo_2 = tipos[1]
@@ -98,28 +103,23 @@ while True:
                 imunidade.append(x)
 
         if len(efetivo_2x) > 1:
-            time.sleep(2)
             tipos_2x = ', '.join(efetivo_2x)
-            print(f'Bot: O pokemon toma super efetivo 2x dos tipos: {tipos_2x}')
+            msgArray.append(f'O pokemon toma super efetivo 2x dos tipos: {tipos_2x}')
         else:
-            time.sleep(2)
-            print(f'Bot: O pokemon toma super efetivo 2x do tipo: {efetivo_2x[0]}')
+            msgArray.append(f'O pokemon toma super efetivo 2x do tipo: {efetivo_2x[0]}')
 
         if len(efetivo_4x) > 1:
-            time.sleep(2)
             tipos_4x = ', '.join(efetivo_4x)
-            print(f'Bot: O pokemon toma super efetivo 4x dos tipos: {tipos_4x}')
+            msgArray.append(f'O pokemon toma super efetivo 4x dos tipos: {tipos_4x}')
         elif len(efetivo_4x) == 1:
-            time.sleep(2)
-            print(f'Bot: O pokemon toma super efetivo 4x do tipo: {efetivo_4x[0]}')
+
+            msgArray.append(f'O pokemon toma super efetivo 4x do tipo: {efetivo_4x[0]}')
 
         if len(imunidade) == 1:
-            time.sleep(2)
-            print(f'Bot: O pokemon é imune ao tipo: {imunidade[0]}')
+            msgArray.append(f'O pokemon é imune ao tipo: {imunidade[0]}')
         elif len(imunidade) > 1:
-            time.sleep(2)
             imunidades = ', '.join(imunidade)
-            print(f'Bot: O pokemon é imune aos tipos: {imunidades}')
+            msgArray.append(f'O pokemon é imune aos tipos: {imunidades}')
 
 
     if len(tipos) == 1:
@@ -127,19 +127,15 @@ while True:
         melhores_tipo = ', '.join(pkmn_dict[tipo][0])
         imunidade = ', '.join(pkmn_dict[tipo][3])
 
-        print(f'Bot: Tipos que dão super efetivo contra {tipo}: {melhores_tipo}')
-        time.sleep(1)
+        msgArray.append(f'Tipos que dão super efetivo contra {tipo}: {melhores_tipo}')
 
         if imunidade != '':
-            time.sleep(1)
-            print(f'Bot: Tipos que {tipo} tem imunidade: {imunidade}')
-    
-    time.sleep(2)
-    contador = contador + 1
-    
-    word=input('Bot: Digite "pare" para terminar o atendimento, caso queira repetir o processo digite qualquer coisa\nBot: O programa ira terminar automaticamente após 6 usos\nUser:')
-    
-    if word == 'pare' or contador > 6 :
-        print('Bot: Obrigado por usar o Assistente de batalha :)')
-        time.sleep(2)
-        break
+
+            msgArray.append(f'Tipos que {tipo} tem imunidade: {imunidade}')
+
+
+    return {"mensagens": msgArray}
+            
+
+
+
