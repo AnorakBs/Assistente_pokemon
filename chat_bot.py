@@ -38,7 +38,7 @@ def calculo_mult_tipos(tipo_pkmn,tipo_1,tipo_2):
         calc_vec = np.add(calc_vec_tipo_1,calc_vec_tipo_2)
     return calc_vec
 
-def call_api(nome_pkmn):
+def call_api(nome_pkmn): 
     resposta = requests.get(f'https://pokeapi.co/api/v2/pokemon/{nome_pkmn}')
     if resposta.status_code == 200:
         x = resposta.json()
@@ -78,8 +78,8 @@ def root(txt: str):
         
         url_pokedex = 'https://pokemondb.net/pokedex/all'
         msgArray.append('Não conheço esse pokemon')
-        msgArray.append(f'Clique nesse link para ver a pokedex e procurar pelo nome correto do pokemon: {url_pokedex}')
-        return msgArray
+        msgArray.append(f'Vamos abrir a pokedex para você, se não abrir depois de 3 segundos <a target="_blank" href="{url_pokedex}">clique aqui<a/>')
+        return {"mensagens": msgArray, "openDex": True}
     if len(tipos) > 1:
         tipo_1 = tipos[0]
         tipo_2 = tipos[1]
@@ -133,6 +133,7 @@ def root(txt: str):
 
             msgArray.append(f'Tipos que {tipo} tem imunidade: {imunidade}')
 
+    msgArray.append(f'Digite "pare" para terminar o atendimento, caso queira repetir o processo digite qualquer coisa')
 
     return {"mensagens": msgArray}
             
