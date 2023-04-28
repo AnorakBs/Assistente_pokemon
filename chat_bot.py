@@ -4,7 +4,6 @@ import codecs
 import time
 import requests
 import os
-from IPython.display import clear_output
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
